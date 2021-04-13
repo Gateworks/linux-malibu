@@ -22,6 +22,7 @@
 #include <linux/resource.h>
 #include <linux/of_pci.h>
 #include <linux/of_irq.h>
+#include <linux/of_gpio.h>
 
 #include "pcie-designware.h"
 
@@ -33,6 +34,8 @@ struct armada8k_pcie {
 	struct clk *clk_reg;
 	struct phy *phy[ARMADA8K_PCIE_MAX_LANES];
 	unsigned int phy_count;
+	enum of_gpio_flags flags;
+	struct gpio_desc *reset_gpio;
 };
 
 #define PCIE_VENDOR_REGS_OFFSET		0x8000
@@ -170,6 +173,18 @@ static int armada8k_pcie_host_init(struct dw_pcie_rp *pp)
 {
 	u32 reg;
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+	struct armada8k_pcie *armada8k_pcie = to_armada8k_pcie(pci);
+
+	/* Reset device if reset gpio is set */
+	if (armada8k_pcie->reset_gpio) {
+		/* assert and then deassert the reset signal */
+		gpiod_set_value_cansleep(armada8k_pcie->reset_gpio, 0);
+		msleep(100);
+		gpiod_set_value_cansleep(armada8k_pcie->reset_gpio,
+					 (armada8k_pcie->flags & OF_GPIO_ACTIVE_LOW) ? 0 : 1);
+		/* Wait for 100ms after PERST# deassertion (PCIe r5.0, 6.6.1) */
+		msleep(100);
+	}
 
 	if (!dw_pcie_link_up(pci)) {
 		/* Disable LTSSM state machine to enable configuration */
@@ -270,6 +285,7 @@ static int armada8k_pcie_probe(struct platform_device *pdev)
 	struct armada8k_pcie *pcie;
 	struct device *dev = &pdev->dev;
 	struct resource *base;
+	int reset_gpio;
 	int ret;
 
 	pcie = devm_kzalloc(dev, sizeof(*pcie), GFP_KERNEL);
@@ -311,6 +327,13 @@ static int armada8k_pcie_probe(struct platform_device *pdev)
 		ret = PTR_ERR(pci->dbi_base);
 		goto fail_clkreg;
 	}
+
+	/* Config reset gpio for pcie if the reset connected to gpio */
+	reset_gpio = of_get_named_gpio_flags(pdev->dev.of_node,
+					     "reset-gpios", 0,
+					     &pcie->flags);
+	if (gpio_is_valid(reset_gpio))
+		pcie->reset_gpio = gpio_to_desc(reset_gpio);
 
 	ret = armada8k_pcie_setup_phys(pcie);
 	if (ret)
