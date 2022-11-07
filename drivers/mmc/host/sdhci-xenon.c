@@ -427,6 +427,10 @@ static int xenon_probe_params(struct platform_device *pdev)
 	if (priv->hw_version == XENON_AP806)
 		host->quirks2 |= SDHCI_QUIRK2_BROKEN_HS200;
 
+	/* Enable HS400 on Armada AP807 */
+	if (priv->hw_version == XENON_AP807)
+		host->mmc->caps2 |= MMC_CAP2_HS400;
+
 	sdhc_id = 0x0;
 	if (!device_property_read_u32(dev, "marvell,xenon-sdhc-id", &sdhc_id)) {
 		nr_sdhc = sdhci_readl(host, XENON_SYS_CFG_INFO);
