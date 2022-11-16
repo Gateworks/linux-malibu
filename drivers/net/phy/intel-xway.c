@@ -10,6 +10,9 @@
 #include <linux/of.h>
 #include <linux/bitfield.h>
 
+// remove invalid LED configuration - should be done via dt prop
+//#define XWAY_CONFIGURE_LED
+
 #define XWAY_MDIO_MIICTRL		0x17	/* mii control */
 #define XWAY_MDIO_IMASK			0x19	/* interrupt mask */
 #define XWAY_MDIO_ISTAT			0x1A	/* interrupt status */
@@ -232,8 +235,10 @@ static int xway_gphy_rgmii_init(struct phy_device *phydev)
 static int xway_gphy_config_init(struct phy_device *phydev)
 {
 	int err;
+#ifdef XWAY_CONFIGURE_LED
 	u32 ledxh;
 	u32 ledxl;
+#endif
 
 	/* Mask all interrupts */
 	err = phy_write(phydev, XWAY_MDIO_IMASK, 0);
@@ -243,6 +248,7 @@ static int xway_gphy_config_init(struct phy_device *phydev)
 	/* Clear all pending interrupts */
 	phy_read(phydev, XWAY_MDIO_ISTAT);
 
+#ifdef XWAY_CONFIGURE_LED
 	/* Ensure that integrated led function is enabled for all leds */
 	err = phy_write(phydev, XWAY_MDIO_LED,
 			XWAY_MDIO_LED_LED0_EN |
@@ -275,6 +281,7 @@ static int xway_gphy_config_init(struct phy_device *phydev)
 	phy_write_mmd(phydev, MDIO_MMD_VEND2, XWAY_MMD_LED1L, ledxl);
 	phy_write_mmd(phydev, MDIO_MMD_VEND2, XWAY_MMD_LED2H, ledxh);
 	phy_write_mmd(phydev, MDIO_MMD_VEND2, XWAY_MMD_LED2L, ledxl);
+#endif
 
 	err = xway_gphy_rgmii_init(phydev);
 	if (err)
