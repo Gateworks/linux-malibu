@@ -220,6 +220,7 @@ static int xenon_check_stability_internal_clk(struct sdhci_host *host)
 {
 	u32 reg;
 	ktime_t timeout;
+	int i = 0;
 
 	/* Wait max 20 ms */
 	timeout = ktime_add_ms(ktime_get(), 20);
@@ -230,6 +231,10 @@ static int xenon_check_stability_internal_clk(struct sdhci_host *host)
 			return -ETIMEDOUT;
 		}
 		usleep_range(900, 1100);
+		i++;
+	}
+	if (i) {
+		dev_info(mmc_dev(host->mmc), "phy_init: Internal clock stabilised after %lldus delay (%d delay)\n", ktime_us_delta(ktime_get(), timeout), i);
 	}
 	return 0;
 }
