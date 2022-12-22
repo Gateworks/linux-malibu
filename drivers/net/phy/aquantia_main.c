@@ -554,8 +554,8 @@ static void aqr107_chip_info(struct phy_device *phydev)
 	build_id = FIELD_GET(VEND1_GLOBAL_RSVD_STAT1_FW_BUILD_ID, val);
 	prov_id = FIELD_GET(VEND1_GLOBAL_RSVD_STAT1_PROV_ID, val);
 
-	phydev_dbg(phydev, "FW %u.%u, Build %u, Provisioning %u\n",
-		   fw_major, fw_minor, build_id, prov_id);
+	phydev_info(phydev, "FW %u.%u, Build %u, Provisioning %u\n",
+		    fw_major, fw_minor, build_id, prov_id);
 }
 
 static int aqr107_config_init(struct phy_device *phydev)
