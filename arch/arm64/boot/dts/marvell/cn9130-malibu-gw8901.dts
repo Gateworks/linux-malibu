@@ -33,6 +33,7 @@
 			  3300000 0x0>;
 	};
 
+#if 0
 	gpio-keys {
 		compatible = "gpio-keys";
 
@@ -50,6 +51,7 @@
 			interrupts = <2>;
 		};
 	};
+#endif
 
 	led-controller {
 		pinctrl-names = "default";
@@ -204,6 +206,7 @@
 	status = "okay";
 	clock-frequency = <100000>;
 
+#if 0
 	gsc: gsc@20 {
 		pinctrl-names = "default";
 		pinctrl-0 = <&cp0_gsc_pins>;
@@ -319,6 +322,7 @@
 		compatible = "dallas,ds1672";
 		reg = <0x68>;
 	};
+#endif
 };
 
 /* microSD */
