@@ -333,11 +333,7 @@
 	pinctrl-0 = <&cp0_sdhci_pins &cp0_sdhci_cd_pins>;
 	bus-width = <4>;
 	cd-gpios = <&cp0_gpio2 23 GPIO_ACTIVE_HIGH>; /* CP_MPP[55] */
-#if 0 // 1.8V/3.3V switch non functional
 	vqmmc-supply = <&cp0_reg_sd_vccq>; /* 1.8V/3.3V switch */
-#else
-	no-1-8-v;
-#endif
 	status = "okay";
 };
 
