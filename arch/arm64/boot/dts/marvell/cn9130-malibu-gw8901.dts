@@ -33,7 +33,6 @@
 			  3300000 0x0>;
 	};
 
-#if 0
 	gpio-keys {
 		compatible = "gpio-keys";
 
@@ -51,7 +50,6 @@
 			interrupts = <2>;
 		};
 	};
-#endif
 
 	led-controller {
 		pinctrl-names = "default";
@@ -206,7 +204,6 @@
 	status = "okay";
 	clock-frequency = <100000>;
 
-#if 0
 	gsc: gsc@20 {
 		pinctrl-names = "default";
 		pinctrl-0 = <&cp0_gsc_pins>;
@@ -284,6 +281,12 @@
 				reg = <0x92>;
 				label = "vdd_0p7";
 			};
+
+			channel@94 {
+				gw,mode = <2>;
+				reg = <0x94>;
+				label = "vdd_1p0";
+			};
 		};
 
 		fan-controller@2c {
@@ -322,7 +325,6 @@
 		compatible = "dallas,ds1672";
 		reg = <0x68>;
 	};
-#endif
 };
 
 /* microSD */
