@@ -33,6 +33,18 @@
 			  3300000 0x0>;
 	};
 
+	fan0: pwm-fan {
+		pinctrl-names = "default";
+		pinctrl-0 = <&cp0_fan_pins>;
+		compatible = "pwm-fan";
+		cooling-levels = <0 102 170 255>;
+		#cooling-cells = <2>;
+		pwms = <&cp0_gpio1 14 40000>; /* pwm cpp_mpp[14]; Target freq:25 kHz */
+		interrupt-parent = <&cp0_gpio1>; /* tach cpp_mpp[24] */
+		interrupts = <24 IRQ_TYPE_EDGE_FALLING>;
+		pulses-per-revolution = <2>;
+	};
+
 	gpio-keys {
 		compatible = "gpio-keys";
 
@@ -109,6 +121,11 @@
 &cp0_syscon0 {
 	cp0_pinctrl: pinctrl {
 		compatible = "marvell,cp115-standalone-pinctrl";
+
+		cp0_fan_pins: cp0-fan-pins-0 {
+			marvell,pins = "mpp14", "mpp24";
+			marvell,function = "gpio";
+		};
 
 		cp0_gsc_pins: cp0-gsc-pins-0 {
 			marvell,pins = "mpp28";
@@ -288,13 +305,6 @@
 				label = "vdd_1p0";
 			};
 		};
-
-		fan-controller@2c {
-			#address-cells = <1>;
-			#size-cells = <0>;
-			compatible = "gw,gsc-fan";
-			reg = <0x0a>;
-		};
 	};
 
 	eeprom@50 {
@@ -394,4 +404,46 @@
 	status = "okay";
 	phy = <&phy0>;
 	phy-mode = "rgmii-id";
+};
+
+&ap_thermal_ic
+{
+	polling-delay = <1000>; /* milliseconds */
+
+	trips {
+		ap_alert0: cpu-alert-0 {
+			temperature = <50000>; /* mC degrees */
+			hysteresis = <5000>; /* mC degrees */
+			type = "active";
+		};
+
+		ap_alert1: cpu-alert-1 {
+			temperature = <60000>; /* mC degrees */
+			hysteresis = <5000>; /* mC degrees */
+			type = "active";
+		};
+
+		ap_alert2: cpu-alert-2 {
+			temperature = <80000>; /* mC degrees */
+			hysteresis = <5000>; /* mC degrees */
+			type = "active";
+		};
+	};
+
+	cooling-maps {
+		map0 {
+			trip = <&ap_alert0>;
+			cooling-device = <&fan0 0 1>;
+		};
+
+		map1 {
+			trip = <&ap_alert1>;
+			cooling-device = <&fan0 1 2>;
+		};
+
+		map2 {
+			trip = <&ap_alert2>;
+			cooling-device = <&fan0 2 3>;
+		};
+	};
 };
