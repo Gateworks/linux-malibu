@@ -144,7 +144,7 @@
 
 		cp0_pcie0_reset_pins: cp0-pcie0-reset-pins-0 {
 			marvell,pins = "mpp52";
-			marvell,function = "gpio";
+			marvell,function = "pcie";
 		};
 
 		cp0_reg_sd_vccq_pins: cp0-reg-sd-vccq-pins-0 {
