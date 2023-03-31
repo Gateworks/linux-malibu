@@ -178,10 +178,11 @@ static int armada8k_pcie_host_init(struct dw_pcie_rp *pp)
 	/* Reset device if reset gpio is set */
 	if (armada8k_pcie->reset_gpio) {
 		/* assert and then deassert the reset signal */
-		gpiod_set_value_cansleep(armada8k_pcie->reset_gpio, 0);
-		msleep(100);
 		gpiod_set_value_cansleep(armada8k_pcie->reset_gpio,
 					 (armada8k_pcie->flags & OF_GPIO_ACTIVE_LOW) ? 0 : 1);
+		msleep(100);
+		gpiod_set_value_cansleep(armada8k_pcie->reset_gpio,
+					 (armada8k_pcie->flags & OF_GPIO_ACTIVE_LOW) ? 1 : 0);
 		/* Wait for 100ms after PERST# deassertion (PCIe r5.0, 6.6.1) */
 		msleep(100);
 	}
@@ -332,8 +333,17 @@ static int armada8k_pcie_probe(struct platform_device *pdev)
 	reset_gpio = of_get_named_gpio_flags(pdev->dev.of_node,
 					     "reset-gpios", 0,
 					     &pcie->flags);
-	if (gpio_is_valid(reset_gpio))
+	if (gpio_is_valid(reset_gpio)) {
+		ret = devm_gpio_request_one(dev, reset_gpio, GPIOF_OUT_INIT_LOW,
+				"PCIe reset");
+		if (ret) {
+			dev_err(dev, "unable to get reset gpio\n");
+			return ret;
+		}
 		pcie->reset_gpio = gpio_to_desc(reset_gpio);
+	} else if (reset_gpio == -EPROBE_DEFER) {
+		return reset_gpio;
+	}
 
 	ret = armada8k_pcie_setup_phys(pcie);
 	if (ret)
